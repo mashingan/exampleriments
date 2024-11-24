@@ -1,3 +1,6 @@
 [submodule "Nim/nim-etc"]
 	path = Nim/nim-etc
 	url = https://github.com/mashingan/nim-etc
+[submodule "Nim/fortoy"]
+	path = Nim/fortoy
+	url = https://github.com/mashingan/fortoy
