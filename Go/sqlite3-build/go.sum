@@ -1,0 +1,4 @@
+github.com/mashingan/smapping v0.1.6 h1:6iCWWhx+g0dGcO4b+zP3DaqND/lCJFAdk547h+2JdWM=
+github.com/mashingan/smapping v0.1.6/go.mod h1:FjfiwFxGOuNxL/OT1WcrNAwTPx0YJeg5JiXwBB1nyig=
+github.com/mattn/go-sqlite3 v1.14.6 h1:dNPt6NO46WmLVt2DLNpwczCmdV5boIZ6g/tlDrlRUbg=
+github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=

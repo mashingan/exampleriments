@@ -1,0 +1,20 @@
+syntax= "proto3";
+
+package mapsany;
+option go_package = ".;main";
+
+//import "google/protobuf/any.proto";
+
+service Echo {
+    rpc Echo (TheMap) returns (RetMsg){}
+}
+
+message TheMap {
+    map<string, int64> int64kv = 1;
+    map<string, string> strkv = 2;
+}
+
+message RetMsg {
+    string msg = 1;
+    string error = 2;
+}

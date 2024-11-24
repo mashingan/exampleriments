@@ -2,9 +2,44 @@
 
 !*.*
 # !*/
+
+# Nim examples
 !Nim/
 !Nim/nim-etc/
+!Nim/fortoy/
+!Nim/gresqlin/
+!Nim/zetcode-gui-c/
 
+# Go examples
+!Go/
+!Go/**
+Go/cmdlet-go
+Go/echo-jwt-cookbook
+Go/fenster
+Go/genai-parakeet
+Go/generic-pointer
+Go/get-embed-folder-tree
+Go/goloc
+Go/gin-html-serve
+Go/hello-grpc
+Go/go-keycloak-example1
+Go/gophernet
+Go/gopunch
+Go/lets-build-compiler
+Go/localredis
+Go/marwin-go
+Go/neural-net-go
+Go/pgx-no-rows
+Go/rawgorm
+Go/register-grpc
+Go/runtest-fiber
+Go/scan-str
+Go/sf-ldap
+Go/softpedia-crawl
+Go/spaced-subpack
+Go/sqleg
+Go/wasm-tut
+Go/watermark-pdf
 
 .vscode/
 buildcache/
@@ -21,6 +56,15 @@ buildcache/
 *.eqz
 *.zip
 *.csv
+*.pdf
+*.db
+*.html
+*.out
+*.mp3
+*.log
+*.json
+
+!Go/zmisc/config_json.json
 
 # disable for big files
 *.mkv
