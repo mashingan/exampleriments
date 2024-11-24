@@ -1,0 +1,33 @@
+*
+
+!*.*
+# !*/
+
+.vscode/
+buildcache/
+
+# Vim backup file
+*.swp
+*.un~
+*~
+
+*.exe
+*.bson
+*.bin
+*.txt
+*.eqz
+*.zip
+*.csv
+
+# disable for big files
+*.mkv
+*.mp4
+*.webm
+
+config.nims
+*.settings
+
+*.pem
+*.patch
+scratchpad
+testresults
