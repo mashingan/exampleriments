@@ -52,6 +52,11 @@ Go/watermark-pdf
 .vscode/
 buildcache/
 
+# Java examples
+!Java/
+!Java/**
+Java/craftlox
+
 # Vim backup file
 *.swp
 *.un~
@@ -75,6 +80,13 @@ buildcache/
 *.o
 
 !Go/zmisc/config_json.json
+
+# Java specifics unnecessary
+!gradlew
+!mvnw
+!pom.xml
+*.class
+
 
 # disable for big files
 *.mkv
