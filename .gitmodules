@@ -4,3 +4,6 @@
 [submodule "Nim/fortoy"]
 	path = Nim/fortoy
 	url = https://github.com/mashingan/fortoy
+[submodule "D/silister"]
+	path = D/silister
+	url = https://github.com/mashingan/silister

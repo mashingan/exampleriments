@@ -41,6 +41,14 @@ Go/sqleg
 Go/wasm-tut
 Go/watermark-pdf
 
+# Ada examples
+!Ada/
+!Ada/**
+
+# D examples
+!D/
+!D/**
+
 .vscode/
 buildcache/
 
@@ -63,6 +71,8 @@ buildcache/
 *.mp3
 *.log
 *.json
+*.ali
+*.o
 
 !Go/zmisc/config_json.json
 
