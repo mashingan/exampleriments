@@ -1,0 +1,1 @@
+This string will be written to the file file.txt

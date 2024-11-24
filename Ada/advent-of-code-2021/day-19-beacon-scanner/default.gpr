@@ -1,0 +1,19 @@
+project Default is
+	type Ver_Option is ("debug", "opt");
+	Ver : Ver_Option := external ("ver", "debug");
+	for Main use ("day_19_beacon_scanner.adb");
+	for Source_Dirs use (".");
+
+	for Object_Dir use "obj/" & Ver;
+
+	package Compiler is
+		case Ver is
+			when "debug" =>
+				for Switches ("Ada") use ("-g");
+			when "opt" =>
+				for Switches ("Ada") use ("-O2");
+			when others =>
+				null;
+		end case;
+	end Compiler;
+end Default;

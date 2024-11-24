@@ -1,0 +1,11 @@
+name = "alire_hello"
+description = "Shiny new project"
+version = "0.0.0"
+
+authors = ["Rahmatullah"]
+maintainers = ["Rahmatullah <rahmat.d.ruffy@gmail.com>"]
+maintainers-logins = ["mashingan"]
+
+executables = ["alire_hello"]
+[[depends-on]]  # Added by alr
+libhello = "^1.0.0"  # Added by alr

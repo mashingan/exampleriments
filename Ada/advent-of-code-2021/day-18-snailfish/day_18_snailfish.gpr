@@ -1,0 +1,9 @@
+project day_18_snailfish is
+    for Main use ("day_18_snailfish.adb");
+    for Object_Dir use ".";
+    for Source_Dirs use (".");
+
+    package Compiler is
+        for Default_Switches ("Ada") use ("-g");
+    end Compiler;
+end day_18_snailfish;

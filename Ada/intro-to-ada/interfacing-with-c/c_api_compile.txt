@@ -1,0 +1,6 @@
+This is working for GNU GNAT.
+
+$ gcc -c -o main.o c_api.c
+$ gnatmake -c c_api.adb
+$ gnatbind -n c_api.ali
+$ gnatlink c_api.ali main.o -o exec_file
