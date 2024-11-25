@@ -57,6 +57,11 @@ buildcache/
 !Java/**
 Java/craftlox
 
+# Typescript examples
+!Typescript
+!Typescript/**
+Typescript/any-ts/ts-test
+
 # Vim backup file
 *.swp
 *.un~

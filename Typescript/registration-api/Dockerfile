@@ -1,0 +1,9 @@
+FROM oven/bun:canary-slim
+WORKDIR /app
+
+COPY package*.json ./
+RUN bun install
+
+COPY . .
+
+CMD [ "bun", "app.ts" ]

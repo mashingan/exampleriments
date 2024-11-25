@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "@types/bun": "^1.0.11",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/sqlite3": "^3.1.11",
+    "@types/xml-js": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "migrate-mysql": "^0.4.0",
+    "sqlite3": "^5.1.7",
+    "xml-js": "^1.6.11"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.30",
+    "@types/supertest": "^6.0.2",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0",
+    "supertest": "^6.3.4",
+    "ts-jest": "^29.1.2"
+  },
+  "scripts": {
+    "migrate": "migrate-mysql -e",
+    "build": "tsc",
+    "start": "bun main.ts",
+    "dev": "nodemon main.ts"
+  }
+}

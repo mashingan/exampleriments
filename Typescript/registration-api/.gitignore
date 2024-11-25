@@ -1,0 +1,10 @@
+dist
+graveyard
+node_modules
+mysqldata
+*.xml
+
+!tsconfig.json
+!package.json
+
+!scratchpad
