@@ -62,6 +62,12 @@ Java/craftlox
 !Typescript/**
 Typescript/any-ts/ts-test
 
+# Ada examples
+!Zig/
+!Zig/*
+!Zig/zig-learn/*
+!Zig/learning-zig/*
+
 # Vim backup file
 *.swp
 *.un~
