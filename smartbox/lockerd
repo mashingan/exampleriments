@@ -1,0 +1,30 @@
+#!/bin/bash
+# /etc/init.d/lockerd
+
+### BEGIN INIT INFO
+# Provides:          lockerslot
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Example initscript
+# Description:       Starting lockerscanner
+### END INIT INFO
+
+
+case "$1" in
+    start)
+        echo "Starting lockerslot.py"
+        /home/pi/dev/smartbox/lockerslot.py
+        ;;
+    stop)
+        echo "Stopping lockerscanner"
+        kill -2 `ps ax | grep locker | awk 'NR==1{print $1}'`
+        ;;
+    *)
+        echo "Usage: /etc/init.d/lockerd start|stop"
+        exit 1
+
+esac
+
+exit 0

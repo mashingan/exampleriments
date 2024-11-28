@@ -68,6 +68,8 @@ Typescript/any-ts/ts-test
 !Zig/zig-learn/*
 !Zig/learning-zig/*
 
+!smartbox
+
 # Vim backup file
 *.swp
 *.un~
