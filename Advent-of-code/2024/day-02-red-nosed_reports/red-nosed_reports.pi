@@ -1,0 +1,43 @@
+import util.
+
+main() =>
+    F = open("input.txt"),
+    % F = open("sample.txt"),
+    Safe = 0,
+    while (not at_end_of_stream(F))
+        Line = read_line(F),
+        Level = [],
+        foreach (S in split(Line))
+            Level := [to_number(S) | Level]
+        end,
+        Level := reverse(Level),
+        Prev = Level[1],
+        Current = Level[2],
+        Trend = decreasing,
+        NewTrend = decreasing,
+        Diff0 = Current - Prev,
+        if Diff0 > 0 then
+            Trend := increasing,
+            NewTrend := increasing
+        end,
+        NotSafe = false,
+        if Diff0 != 0 , abs(Diff0) < 3 then
+            foreach(I in 3 .. Level.length, break((NewTrend != Trend)))
+                Prev := Current,
+                Current := Level[I],
+                Diff := Current - Prev,
+                if Diff < 0 then
+                    NewTrend := decreasing,
+                else
+                    NewTrend := increasing
+                end,
+                if abs(Diff) > 3; Diff =:= 0 then
+                    NotSafe := true
+                end
+            end,
+            if NewTrend = Trend, not NotSafe then
+                Safe := Safe + 1
+            end
+        end
+    end,
+    println(Safe).
