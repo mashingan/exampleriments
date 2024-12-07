@@ -1,0 +1,39 @@
+main() =>
+    day1("input.txt").
+
+day1(Fname) =>
+    F = open(Fname),
+    L = [],
+    R = [],
+    M = new_map(),
+    % read_sort(F, L, R, L1, R1),
+    while (not at_end_of_stream(F))
+        X = read_int(F),
+        Y = read_int(F),
+        L := [X | L],
+        R := [Y | R],
+        V = get(M, Y, 0),
+        put(M, Y, V+1)
+    end,
+    Diff = 0,
+    Sim = 0,
+    L := sort(L),
+    R := sort(R),
+    foreach (I in 1 .. L.length)
+        X := L[I],
+        Y := R[I],
+        Diff := Diff + abs(X - Y),
+        V = get(M, X, 0),
+        Sim := Sim + (X * V)
+    end,
+    println(Diff),
+    println(Sim).
+
+% read_sort(FD, List1, List2, List1Out, List2out) ?=>
+%     not at_end_of_stream(FD),
+%     X = [read_int(FD) | List1],
+%     Y = [read_int(FD) | List2],
+%     List1Out = sort(X),
+%     List2Out = sort(Y),
+%     read_sort(FD, List1Out, List2Out, List1Out, List2out).
+% read_sort(FD, _, _, _, _) => at_end_of_stream(FD).
