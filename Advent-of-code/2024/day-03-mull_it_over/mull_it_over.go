@@ -23,7 +23,8 @@ func main() {
 	defer f.Close()
 	mulexpr := regexp.MustCompile(rfmt)
 	scanner := bufio.NewScanner(f)
-	sum := 0
+	sumPart1 := 0
+	sumPart2 := 0
 	enabled := true
 	for scanner.Scan() {
 		txt := scanner.Text()
@@ -42,10 +43,14 @@ func main() {
 				log.Println(err)
 			} else if n != 2 {
 				log.Println("scanned not match, expected 2 got:", n)
-			} else if enabled {
-				sum += l * r
+			} else {
+				sumPart1 += l * r
+				if enabled {
+					sumPart2 += l * r
+				}
 			}
 		}
 	}
-	fmt.Println(sum)
+	fmt.Printf("%10d\n", sumPart1)
+	fmt.Printf("%10d\n", sumPart2)
 }
