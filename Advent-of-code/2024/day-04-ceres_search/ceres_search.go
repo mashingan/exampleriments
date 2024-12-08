@@ -28,15 +28,15 @@ func main() {
 	}
 
 	t1 := xmasCalc(letters, rexmas)
+	t2 := xshapedMas(letters)
 	fmt.Println(t1)
+	fmt.Println(t2)
 }
 
 func calc(line []byte, rex *regexp.Regexp) int {
 	ll := slices.Clone(line)
-	// log.Println("line:", string(line))
 	t1 := len(rex.FindAll(line, -1))
 	slices.Reverse(ll)
-	// log.Println("ll:", string(ll))
 	t2 := len(rex.FindAll(ll, -1))
 	return t1 + t2
 }
@@ -87,7 +87,6 @@ func xmasCalc(letters [][]byte, rexmas *regexp.Regexp) int {
 		i++
 		j--
 	}
-	// log.Println("diag:", string(diag))
 	t1 += calc(diag, rexmas)
 	for i := 1; i < len(letters); i++ {
 		dright := []byte{}
@@ -100,11 +99,41 @@ func xmasCalc(letters [][]byte, rexmas *regexp.Regexp) int {
 				dleft = append(dleft, letters[j-i][len(letters[i])-j-1])
 			}
 		}
-		// log.Println("dright:", string(dright))
-		// log.Println("dleft:", string(dleft))
 		t1 += calc(dright, rexmas)
 		t1 += calc(dleft, rexmas)
 	}
 	return t1
 
+}
+
+func xshapedMas(letters [][]byte) int {
+	total := 0
+	for i := 1; i < len(letters)-1; i++ {
+		for j := 1; j < len(letters[i])-1; j++ {
+			if letters[i][j] != 'A' {
+				continue
+			}
+			c1 := []byte{letters[i-1][j-1], letters[i][j], letters[i+1][j+1]}
+			c2 := []byte{letters[i+1][j-1], letters[i][j], letters[i-1][j+1]}
+			slices.Sort(c1)
+			slices.Sort(c2)
+			if string(c1) == "AMS" && string(c2) == "AMS" {
+				total++
+			}
+			// drawMap(c1, c2)
+
+		}
+	}
+	return total
+}
+
+func drawMap(c1, c2 []byte) {
+	m := [3][3]byte{
+		{c1[0], '.', c2[2]},
+		{'.', c1[1], '.'},
+		{c2[0], '.', c1[2]},
+	}
+	for _, b := range m {
+		fmt.Printf("%q\n", b)
+	}
 }
