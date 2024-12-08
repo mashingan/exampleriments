@@ -21,11 +21,29 @@ func main() {
 	rexmas := regexp.MustCompile(xmas)
 	letters := [][]byte{}
 	scanner := bufio.NewScanner(f)
-	t1 := 0
 	for scanner.Scan() {
 		txt := scanner.Text()
 		b := []byte(txt)
 		letters = append(letters, b)
+	}
+
+	t1 := xmasCalc(letters, rexmas)
+	fmt.Println(t1)
+}
+
+func calc(line []byte, rex *regexp.Regexp) int {
+	ll := slices.Clone(line)
+	// log.Println("line:", string(line))
+	t1 := len(rex.FindAll(line, -1))
+	slices.Reverse(ll)
+	// log.Println("ll:", string(ll))
+	t2 := len(rex.FindAll(ll, -1))
+	return t1 + t2
+}
+
+func xmasCalc(letters [][]byte, rexmas *regexp.Regexp) int {
+	t1 := 0
+	for _, b := range letters {
 		t1 += calc(b, rexmas)
 	}
 
@@ -87,16 +105,6 @@ func main() {
 		t1 += calc(dright, rexmas)
 		t1 += calc(dleft, rexmas)
 	}
+	return t1
 
-	fmt.Println(t1)
-}
-
-func calc(line []byte, rex *regexp.Regexp) int {
-	ll := slices.Clone(line)
-	// log.Println("line:", string(line))
-	t1 := len(rex.FindAll(line, -1))
-	slices.Reverse(ll)
-	// log.Println("ll:", string(ll))
-	t2 := len(rex.FindAll(ll, -1))
-	return t1 + t2
 }
