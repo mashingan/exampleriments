@@ -6,11 +6,67 @@ import (
 	"log"
 )
 
-type pos struct {
+type (
+	pos struct {
 	col, row int
 }
 
-type direction byte
+	direction byte
+	guard     struct {
+		direction
+		pos
+	}
+)
+
+var nextDirection = map[direction]direction{
+	up:    right,
+	right: down,
+	down:  left,
+	left:  up,
+}
+
+func (g *guard) walk(walked map[pos][]direction, labmap [][]byte) bool {
+	limitTest := func() bool {
+		switch g.direction {
+		case up:
+			return g.row >= 0
+		case right:
+			return g.col < len(labmap[g.row])
+		case down:
+			return g.row < len(labmap)
+		default:
+			return g.row >= 0
+		}
+	}
+	incNext := func(d direction) {
+		switch d {
+		case up:
+			g.row--
+		case right:
+			g.col++
+		case down:
+			g.row++
+		default:
+			g.col--
+		}
+	}
+	goBack := func(d direction) {
+		for range 2 {
+			d = nextDirection[d]
+		}
+		incNext(d)
+	}
+	for ; limitTest(); incNext(g.direction) {
+		if labmap[g.row][g.col] == obstacle {
+			goBack(g.direction)
+			g.direction = nextDirection[g.direction]
+			recordWalk(walked, g.pos, g.direction)
+			return true
+		}
+		recordWalk(walked, g.pos, g.direction)
+	}
+	return false
+}
 
 const (
 	up       direction = '^'
@@ -20,10 +76,7 @@ const (
 	obstacle byte      = '#'
 )
 
-type guard struct {
-	direction
-	pos
-}
+var notAvailablePos = pos{-1, -1}
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -32,14 +85,14 @@ func main() {
 	row := 0
 	labmap := [][]byte{}
 	var guardinitial guard
-	guardFound := false
-	guardwalk := map[pos]struct{}{}
+	guardwalk := map[pos][]direction{}
+	obstacleMap := map[pos]struct{}{}
 	common.ReadLines(fname, func(text string) {
 		defer func() { row++ }()
 		bs := []byte(text)
 		labmap = append(labmap, bs)
-		if !guardFound {
 			for c, b := range bs {
+			p := (pos{c, row})
 				switch direction(b) {
 				case up:
 					fallthrough
@@ -49,15 +102,12 @@ func main() {
 					fallthrough
 				case left:
 					{
-						guardFound = true
-						p := (pos{c, row})
 						guardinitial = guard{direction: direction(b), pos: p}
-						guardwalk[p] = struct{}{}
-					}
+					guardwalk[p] = []direction{direction(b)}
 				}
-				if guardFound {
-					break
-				}
+			}
+			if b == obstacle {
+				obstacleMap[p] = struct{}{}
 			}
 		}
 	})
@@ -71,27 +121,22 @@ func main() {
 	fmt.Println(len(guardwalk))
 }
 
-func walk(g guard, labmap [][]byte, walked map[pos]struct{}) {
-	y := g.row
-	x := g.col
-	for y >= 0 && y < len(labmap) && x >= 0 && x < len(labmap[y]) {
-		if g.direction == up {
-		walkUp:
-			for y-1 >= 0 {
-				p := labmap[y-1][x]
-				upos := (pos{x, y})
-				// log.Printf("p: %c, direction: %c, pos: %#v\n", p, g.direction, upos)
-				if p == obstacle {
-					g.direction = '>'
-					g.pos = upos
-					break walkUp
-				}
-				walked[upos] = struct{}{}
-				y--
-			}
-			if y == 0 {
-				walked[pos{x, y}] = struct{}{}
-				y--
+func recordWalk(walked map[pos][]direction, p pos, d direction) {
+	prev, ok := walked[p]
+	if ok {
+		prev = append(prev, up)
+		walked[p] = prev
+	} else {
+		walked[p] = []direction{d}
+	}
+}
+
+func walk(g guard, labmap [][]byte, walked map[pos][]direction) {
+	running := true
+	for running {
+		running = g.walk(walked, labmap)
+	}
+}
 			}
 		}
 		if g.direction == right {
