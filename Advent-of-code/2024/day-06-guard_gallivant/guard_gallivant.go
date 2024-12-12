@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	fname = "sample.txt"
+	// fname = "sample.txt"
 	// fname = "sample2.txt"
-	// fname = "input.txt"
+	fname = "input.txt"
 )
 
 type (
@@ -71,27 +71,12 @@ func (g *guard) walk(walked map[pos][]direction, labmap [][]byte) bool {
 		if labmap[g.row][g.col] == obstacle {
 			g.goBack(g.direction)
 			g.direction = nextDirection[g.direction]
-			log.Printf("before recordwalk: pos: %#v, direction: %q\n", g.pos, walked[g.pos])
 			recordWalk(walked, g.pos, g.direction)
-			log.Printf("after  recordwalk: pos: %#v, direction: %q\n", g.pos, walked[g.pos])
 			return true
 		}
 		recordWalk(walked, g.pos, g.direction)
 	}
 	return false
-}
-
-func (g guard) before(p pos) bool {
-	switch g.direction {
-	case up:
-		return g.row > p.row
-	case right:
-		return g.col < p.col
-	case down:
-		return g.row < p.row
-	default:
-		return g.col > p.col
-	}
 }
 
 const (
@@ -101,8 +86,6 @@ const (
 	left     direction = '<'
 	obstacle byte      = '#'
 )
-
-var notAvailablePos = pos{-1, -1}
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -138,21 +121,11 @@ func main() {
 			}
 		}
 	})
-	walk(guardinitial, labmap, guardwalk)
-	// log.Println(err)
-	// log.Println(guardinitial)
-	// log.Println(guardwalk)
-	// for _, r := range labmap {
-	// 	log.Println(string(r))
-	// }
-	// fmt.Println(len(guardwalk))
-	// for o := range obstacleMap {
-	// 	log.Println("obstacle:", o)
-	// }
-	nom := overlapMap(guardinitial, obstacleMap, guardwalk, labmap)
-	for p := range nom {
-		log.Println("nom:", p)
+	ginit := guardinitial
+	for guardinitial.walk(guardwalk, labmap) {
 	}
+	fmt.Println(len(guardwalk))
+	nom := overlapMap(ginit, guardwalk, labmap)
 	fmt.Println(len(nom))
 }
 
@@ -166,90 +139,35 @@ func recordWalk(walked map[pos][]direction, p pos, d direction) {
 	}
 }
 
-func walk(g guard, labmap [][]byte, walked map[pos][]direction) {
-	running := true
-	for running {
-		running = g.walk(walked, labmap)
-	}
-}
-
-func checkPos(g1 guard) {
-	log.Println("g1.pos:", g1.pos, ", direction:", string(g1.direction))
-}
 func outsideMap(labmap [][]byte, g1 guard) bool {
 	return g1.row < 0 || g1.row >= len(labmap) || g1.col < 0 || g1.col >= len(labmap[g1.row])
 }
 
-func adjacentOf(p, a pos) bool {
-	return (p.col == a.col+1 && p.row == a.row) ||
-		(p.col == a.col-1 && p.row == a.row) ||
-		(p.col == a.col && p.row == a.row+1) ||
-		(p.col == a.col && p.row == a.row-1)
-
-}
-
-func overlapMap(ginit guard, om map[pos]struct{}, wm map[pos][]direction, labmap [][]byte) map[pos]struct{} {
+func overlapMap(ginit guard, wm map[pos][]direction, labmap [][]byte) map[pos]struct{} {
 	newObstacleMap := map[pos]struct{}{}
-	dumwalk := map[pos][]direction{}
-	for y, row := range labmap {
-		for x, col := range labmap[y] {
+	for p := range wm {
+		if p == ginit.pos {
+			continue
+		}
+		labmap[p.row][p.col] = obstacle
+		count := 0
+		wall := []pos{}
+		walked := map[pos][]direction{}
+		g1 := ginit
+		for count < 3 {
+			if !g1.walk(walked, labmap) {
+				break
+			}
+			if in(wall, g1.pos) {
+				count++
+			}
+			wall = append(wall, g1.pos)
+		}
+		labmap[p.row][p.col] = '.'
+		if count >= 3 {
+			newObstacleMap[p] = struct{}{}
 		}
 	}
-	// for k := range om {
-	// 	log.Println("obstacle:", k)
-	// 	mpaths := map[direction]pos{
-	// 		down:  {k.col - 1, k.row}, // next down direction, from left to right
-	// 		right: {k.col, k.row + 1}, // next right direction, from down to up
-	// 		up:    {k.col + 1, k.row}, // next up direction, from right to left
-	// 		left:  {k.col, k.row - 1}, // next left direction, from up to down
-	// 	}
-	// 	walked := map[pos][]direction{}
-	// probeAdjacents:
-	// 	for d, p := range mpaths {
-	// 		// log.Println("d before:", string(d))
-	// 		// d = nextDirection[d]
-	// 		// log.Println("d  after:", string(d))
-	// 		log.Println("adjacent obstacle:", p)
-	// 		w, ok := wm[p]
-	// 		if !ok || !in(w, d) {
-	// 			log.Printf("skipped: dir %c with walked %q\n", d, w)
-	// 			continue
-	// 		}
-	// 		g1 := guard{d, p}
-	// 		if outsideMap(labmap, g1) {
-	// 			continue
-	// 		}
-	// 		for range 2 {
-	// 			if !g1.walk(walked, labmap) {
-	// 				continue probeAdjacents
-	// 			}
-	// 			checkPos(g1)
-	// 		}
-	// 		g1d := g1.direction
-	// 		for {
-	// 			if outsideMap(labmap, g1) {
-	// 				continue probeAdjacents
-	// 			}
-	// 			if labmap[g1.row][g1.col] == obstacle {
-	// 				continue probeAdjacents
-	// 			}
-	// 			g1.step(g1d)
-	// 			checkPos(g1)
-	// 			if g1.col == p.col || g1.row == p.row {
-	// 				break
-	// 			}
-	// 		}
-	// 		g1.step(g1d)
-	// 		checkPos(g1)
-	// 		if outsideMap(labmap, g1) {
-	// 			continue
-	// 		}
-	// 		if labmap[g1.row][g1.col] != obstacle || g1.pos != ginit.pos {
-	// 			log.Println("found possible new obstruction:", g1.pos)
-	// 			newObstacleMap[g1.pos] = struct{}{}
-	// 		}
-	// 	}
-	// }
 	return newObstacleMap
 }
 
