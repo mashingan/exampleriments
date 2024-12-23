@@ -7,3 +7,6 @@
 [submodule "D/silister"]
 	path = D/silister
 	url = https://github.com/mashingan/silister
+[submodule "Nim/graflib"]
+	path = Nim/graflib
+	url = https://github.com/mashingan/graflib
