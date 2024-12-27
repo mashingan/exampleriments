@@ -10,3 +10,9 @@
 [submodule "Nim/graflib"]
 	path = Nim/graflib
 	url = https://github.com/mashingan/graflib
+[submodule "Go/gastar"]
+	path = Go/gastar
+	url = https://github.com/mashingan/gastar
+[submodule "Go/smapping"]
+	path = Go/smapping
+	url = https://github.com/mashingan/smapping

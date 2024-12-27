@@ -60,6 +60,7 @@ const inputfile {.strdefine.} = "sample.txt"
 proc main =
     var sum = 0'bi
     var count = 0
+    var validcount = 0
     for ln in inputfile.lines:
         var g = buildGraph[Node](directed = true)
         let ll = ln.split(sep = ':', maxSplit = 2)
@@ -78,6 +79,7 @@ proc main =
         var paths = `a*`[Node, int](g, start, goal)
         inc count
         if paths.len > 0:
+            inc validcount
             let last = initBigInt(start.paths[^1])
             if paths[^1].current div last == paths[paths.high-1].current:
                 paths[^1].op = '*'
@@ -87,5 +89,6 @@ proc main =
             sum += total
             echo &"line: {count}, the sum: {total}, current sum: {sum}"
     echo sum
+    echo "valid count: ", validcount
 
 main()
