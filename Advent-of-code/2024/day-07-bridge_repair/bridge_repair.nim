@@ -87,7 +87,8 @@ proc main =
                 paths[^1].op = '+'
             # echo paths
             sum += total
-            echo &"line: {count}, the sum: {total}, current sum: {sum}"
+            # echo "paths: ", paths
+            # echo &"line: {count}, the sum: {total}, current sum: {sum}"
     echo sum
     echo "valid count: ", validcount
 

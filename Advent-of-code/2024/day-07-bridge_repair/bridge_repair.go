@@ -2,11 +2,14 @@ package main
 
 import (
 	"aoc-2024/common"
+	"crypto/sha1"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"math/big"
 	"strconv"
 	"strings"
+	"unsafe"
 
 	"github.com/mashingan/gastar"
 )
@@ -22,6 +25,7 @@ type node struct {
 	deep    uint
 	current *big.Int
 	total   *big.Int
+	hash    string
 }
 
 func (n node) String() string {
@@ -30,14 +34,29 @@ func (n node) String() string {
 	)
 }
 
+func thehash(a, b int64) string {
+	h := sha1.New()
+	for _, v := range []int64{a, b} {
+		hs := make([]byte, unsafe.Sizeof(v))
+		binary.Encode(hs, binary.NativeEndian, v)
+		h.Write(hs)
+	}
+	s := fmt.Sprintf("%x", h.Sum(nil))
+	return s
+	// return fmt.Sprintf("%d|%d", a, b)
+}
+
 func (m node) Hash() string {
-	return fmt.Sprintf("%d|%d", m.current.Uint64(), m.total.Uint64())
+	return m.hash
 }
 
 type gn struct {
 	gastar.Grapher[node, node, int]
 	paths []*big.Int
 }
+
+func (g gn) Distance(n1, n2 node) int { return -1 }
+func (g gn) Cost(n1, n2 node) int     { return 1 }
 
 func (g gn) Neighbors(n node) []node {
 	if n.deep >= uint(len(g.paths)) {
@@ -55,10 +74,24 @@ func (g gn) Neighbors(n node) []node {
 		currentp = currentp.Add(currentp, g.paths[n.deep+1])
 		currentm = currentm.Mul(currentm, g.paths[n.deep+1])
 	}
-	return []node{
-		{val: val, deep: n.deep + 1, op: '+', current: currentp, total: n.total},
-		{val: val, deep: n.deep + 1, op: '*', current: currentm, total: n.total},
+	mp := thehash(currentp.Int64(), n.total.Int64())
+	mm := thehash(currentm.Int64(), n.total.Int64())
+	next := []node{}
+	if currentp.Cmp(n.total) <= 0 {
+		next = append(next, node{
+			val: val, deep: n.deep + 1, op: '+', current: currentp, total: n.total, hash: mp,
+		})
 	}
+	if currentm.Cmp(n.total) <= 0 {
+		next = append(next, node{
+			val: val, deep: n.deep + 1, op: '*', current: currentm, total: n.total, hash: mm,
+		})
+	}
+	return next
+	// return []node{
+	// 	{val: val, deep: n.deep + 1, op: '+', current: currentp, total: n.total, hash: mp},
+	// 	{val: val, deep: n.deep + 1, op: '*', current: currentm, total: n.total, hash: mm},
+	// }
 }
 
 func main() {
@@ -80,10 +113,12 @@ func main() {
 		start := node{
 			total:   sum,
 			current: big.NewInt(0),
+			hash:    thehash(0, sum.Int64()),
 		}
 		goal := node{
 			total:   sum,
 			current: sum,
+			hash:    thehash(sum.Int64(), sum.Int64()),
 		}
 		g := gn{Grapher: gastar.NewDefault[node, node, int]()}
 		g.paths = vals
@@ -94,7 +129,7 @@ func main() {
 		validcount++
 		tots.Add(tots, sum)
 		// log.Printf("count: %d, %q\n", count, paths)
-		fmt.Printf("line: %d, the sum: %d, current sum: %d\n", count, sum.Uint64(), tots.Uint64())
+		// fmt.Printf("line: %d, the sum: %d, current sum: %d\n", count, sum.Int64(), tots.Int64())
 	})
 	fmt.Println(tots.Uint64())
 	fmt.Println("validcount:", validcount)
