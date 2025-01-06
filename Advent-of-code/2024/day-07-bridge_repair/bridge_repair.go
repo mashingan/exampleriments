@@ -4,6 +4,7 @@ import (
 	"aoc-2024/common"
 	"crypto/sha1"
 	"encoding/binary"
+	"flag"
 	"fmt"
 	"log"
 	"math/big"
@@ -14,9 +15,9 @@ import (
 	"github.com/mashingan/gastar"
 )
 
-const (
-	input = "input.txt"
-	// input = "sample.txt"
+var (
+	// input = "input.txt"
+	input = "sample.txt"
 )
 
 type node struct {
@@ -55,9 +56,6 @@ type gn struct {
 	paths []*big.Int
 }
 
-func (g gn) Distance(n1, n2 node) int { return -1 }
-func (g gn) Cost(n1, n2 node) int     { return 1 }
-
 func (g gn) Neighbors(n node) []node {
 	if n.deep >= uint(len(g.paths)) {
 		return []node{}
@@ -95,11 +93,17 @@ func (g gn) Neighbors(n node) []node {
 }
 
 func main() {
+	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	tots := big.NewInt(0)
+	inputFile := flag.Arg(0)
+	if inputFile == "" {
+		inputFile = input
+	}
+	log.Println("inputFile:", inputFile)
 	count := 0
 	validcount := 0
-	common.ReadLines(input, func(text string) {
+	common.ReadLines(inputFile, func(text string) {
 		nums := strings.Split(text, " ")
 		vals := make([]*big.Int, len(nums)-1)
 		sum1, _ := strconv.Atoi(strings.Trim(nums[0], ":"))
