@@ -1,0 +1,23 @@
+# disable all
+*
+
+# enable all those has extension
+!*.*
+
+# ignore windows binary executable
+*.exe
+
+# ignore go.work and go.work.sum
+*.work*
+
+# disable vim autobackup swap
+*.swp
+*.swap
+
+# ignore all related to wal sqlite
+*.db-*
+
+*/statics
+.DS_*
+
+*.epub
