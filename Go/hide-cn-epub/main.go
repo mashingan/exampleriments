@@ -71,7 +71,7 @@ func main() {
 			log.Fatal(err)
 		}
 		ext := filepath.Ext(f.Name)
-		if strings.ToLower(ext) == ".xhtml" {
+		if strings.HasSuffix(strings.ToLower(ext), "html") {
 			wg.Add(1)
 			go processXhtml(&wg, f.Name, ch, fr)
 			continue
