@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/xml"
 	"flag"
 	"io"
@@ -13,6 +14,11 @@ import (
 
 	"github.com/rylans/getlang"
 )
+
+type entry struct {
+	name string
+	rc   io.ReadCloser
+}
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -44,11 +50,22 @@ func main() {
 	var (
 		wg sync.WaitGroup
 	)
-	for _, f := range repub.File {
-		fw, err := wepub.Create(f.Name)
-		if err != nil && err != io.EOF {
-			log.Fatal(err)
+	ch := make(chan entry, 10)
+	done := make(chan struct{}, 1)
+	go func() {
+		for entry := range ch {
+			fw, err := wepub.Create(entry.name)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			if _, err := io.Copy(fw, entry.rc); err != nil {
+				log.Println(err)
+			}
 		}
+		done <- struct{}{}
+	}()
+	for _, f := range repub.File {
 		fr, err := f.Open()
 		if err != nil {
 			log.Fatal(err)
@@ -56,24 +73,24 @@ func main() {
 		ext := filepath.Ext(f.Name)
 		if strings.ToLower(ext) == ".xhtml" {
 			wg.Add(1)
-			// go processXhtml(&wg, fw, fr)
-			processXhtml(&wg, fw, fr)
+			go processXhtml(&wg, f.Name, ch, fr)
 			continue
 		}
-		if _, err := io.Copy(fw, fr); err != nil {
-			log.Println(err)
-		}
+		ch <- entry{f.Name, fr}
 	}
 	wg.Wait()
+	close(ch)
+	<-done
 }
 
-func processXhtml(wg *sync.WaitGroup, w io.Writer, r io.ReadCloser) {
+func processXhtml(wg *sync.WaitGroup, fname string, ch chan<- entry, r io.ReadCloser) {
 	defer func() {
 		wg.Done()
 		r.Close()
 	}()
 	decoder := xml.NewDecoder(r)
 	decoder.Strict = false
+	w := new(bytes.Buffer)
 	encoder := xml.NewEncoder(w)
 	defer encoder.Close()
 traversing:
@@ -120,4 +137,5 @@ traversing:
 			encoder.EncodeToken(v)
 		}
 	}
+	ch <- entry{fname, io.NopCloser(w)}
 }
