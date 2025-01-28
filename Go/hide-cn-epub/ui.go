@@ -154,7 +154,7 @@ func cleaningOnprogress(st *pageState) {
 		st.cleaning = false
 	}(st)
 	done := make(chan error, 1)
-	go func() {
+	go func(st *pageState, done chan error) {
 		err := clean(st.filename)
 		if err != nil {
 			done <- err
@@ -163,7 +163,7 @@ func cleaningOnprogress(st *pageState) {
 			return
 		}
 		done <- nil
-	}()
+	}(st, done)
 	for {
 		select {
 		case err := <-done:
