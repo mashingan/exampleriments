@@ -17,6 +17,11 @@ import (
 	"gioui.org/x/notify"
 )
 
+const (
+	updateWindowDuration = 10 * time.Millisecond
+	progressStep         = 0.01
+)
+
 func runGui() {
 	go func() {
 		window := new(app.Window)
@@ -167,11 +172,11 @@ func cleaningOnprogress(st *pageState) {
 			st.cleaningDone = true
 			st.cleaningProgress = 1
 			return
-		case <-time.Tick(10 * time.Millisecond):
+		case <-time.Tick(updateWindowDuration):
 			if st.cleaningProgress >= 1 {
 				st.cleaningProgress = 0
 			} else {
-				st.cleaningProgress += 0.01
+				st.cleaningProgress += progressStep
 			}
 		}
 	}
