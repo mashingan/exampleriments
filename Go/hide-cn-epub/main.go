@@ -25,12 +25,20 @@ func main() {
 	flag.Parse()
 	args := flag.Args()
 	if len(args) < 1 {
-		log.Fatalf("Usage: hce <path/where/the/file.epub>")
+		runGui()
+		return
 	}
 	fname := args[0]
+	if err := clean(fname); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func clean(fname string) error {
 	repub, err := zip.OpenReader(fname)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return err
 	}
 	defer repub.Close()
 	dir, fpath := filepath.Split(fname)
@@ -38,7 +46,8 @@ func main() {
 	thef := strings.Replace(fpath, ext, "", -1)
 	copye, err := os.Create(filepath.Join(dir, thef+"_cleaned"+ext))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return err
 	}
 	defer copye.Close()
 	wepub := zip.NewWriter(copye)
@@ -68,7 +77,8 @@ func main() {
 	for _, f := range repub.File {
 		fr, err := f.Open()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			return err
 		}
 		ext := filepath.Ext(f.Name)
 		if strings.HasSuffix(strings.ToLower(ext), "html") {
@@ -81,6 +91,7 @@ func main() {
 	wg.Wait()
 	close(ch)
 	<-done
+	return nil
 }
 
 func processXhtml(wg *sync.WaitGroup, fname string, ch chan<- entry, r io.ReadCloser) {
@@ -105,7 +116,6 @@ traversing:
 		}
 		switch v := token.(type) {
 		case xml.StartElement:
-			v.Name.Space = ""
 			if v.Name.Local != "p" {
 				encoder.EncodeToken(v)
 				continue
@@ -120,6 +130,7 @@ traversing:
 			}
 			innertext, ok := t2.(xml.CharData)
 			if !ok {
+				encoder.EncodeToken(t2)
 				continue
 			}
 			stext := string(innertext)
@@ -131,7 +142,6 @@ traversing:
 			encoder.EncodeToken(v)
 			encoder.EncodeToken(innertext)
 		case xml.EndElement:
-			v.Name.Space = ""
 			encoder.EncodeToken(v)
 		default:
 			encoder.EncodeToken(v)
