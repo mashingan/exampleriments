@@ -79,6 +79,7 @@ func run(w *app.Window) error {
 		case e := <-events:
 			switch e := e.(type) {
 			case app.DestroyEvent:
+				acks <- struct{}{}
 				return e.Err
 			case app.FrameEvent:
 				ops.Reset()
