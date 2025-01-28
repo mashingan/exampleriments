@@ -87,7 +87,7 @@ func run(w *app.Window) error {
 				if ps.choseFile.Clicked(gtx) && !ps.choosingFile {
 					go choosingFile(expl, &ps)
 				}
-				if ps.cleanBtn.Clicked(gtx) && !ps.cleaning {
+				if ps.cleanBtn.Clicked(gtx) && !ps.cleaning && ps.filename != "" {
 					go cleaningOnprogress(&ps)
 				}
 				cleanPage(gtx, theme, &ps)
@@ -129,6 +129,7 @@ func choosingFile(expl *explorer.Explorer, st *pageState) {
 	st.choosingFile = true
 	st.cleaningDone = false
 	st.cleaningInfo = ""
+	st.filename = ""
 	defer func(st *pageState) {
 		st.choosingFile = false
 	}(st)
