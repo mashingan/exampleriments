@@ -93,7 +93,7 @@ func run(w *app.Window) error {
 				e.Frame(gtx.Ops)
 			}
 			acks <- struct{}{}
-		case <-time.Tick(10 * time.Millisecond):
+		case <-time.Tick(updateWindowDuration):
 			w.Invalidate()
 		}
 	}
