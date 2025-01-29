@@ -105,8 +105,8 @@ func cleanPage(gtx layout.Context, th *material.Theme, ps *pageState) layout.Dim
 	if ps.cleaning {
 		info = layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{}.Layout(gtx,
-				layout.Rigid(material.H6(th, "Cleaning").Layout),
-				layout.Rigid(material.ProgressBar(th, ps.cleaningProgress).Layout),
+				layout.Rigid(material.Subtitle1(th, "Cleaning").Layout),
+				layout.Rigid(material.ProgressCircle(th, ps.cleaningProgress).Layout),
 			)
 		})
 	}
