@@ -16,3 +16,6 @@
 [submodule "Go/smapping"]
 	path = Go/smapping
 	url = https://github.com/mashingan/smapping
+[submodule "Go/compgo"]
+	path = Go/compgo
+	url = https://github.com/mashingan/compgo
