@@ -46,9 +46,8 @@ func (ch changes) Neighbors(cc coinChanges) []coinChanges {
 	}
 
 	result := make([]coinChanges, 0, len(coins))
+	newc := slices.Clone(cc.coins)
 	for _, c := range coins {
-		newc := make([]coin, len(cc.coins))
-		copy(newc, cc.coins)
 		result = append(result, coinChanges{
 			coins: append(newc, coin(c)),
 			value: cc.value + c,
