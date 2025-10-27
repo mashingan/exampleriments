@@ -41,23 +41,16 @@ func (ch changes) Neighbors(cc coinChanges) []coinChanges {
 			{value: targetChange},
 		}
 	}
-	if len(cc.coins) >= maxChanges || cc.value > targetChange {
-		return []coinChanges{}
-	}
-
-	currsum := 0
-	for _, c := range cc.coins {
-		currsum += int(c)
-	}
-
-	if currsum > targetChange {
+	if len(cc.coins) >= maxChanges {
 		return []coinChanges{}
 	}
 
 	result := make([]coinChanges, 0, len(coins))
 	for _, c := range coins {
+		newc := make([]coin, len(cc.coins))
+		copy(newc, cc.coins)
 		result = append(result, coinChanges{
-			coins: append(cc.coins, coin(c)),
+			coins: append(newc, coin(c)),
 			value: cc.value + c,
 		})
 	}
