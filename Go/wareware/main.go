@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mashingan/bitfield"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -166,6 +167,7 @@ type Activity struct {
 	inventories   []Inventory
 	id, warehouse string // warehouse using id
 	datetime      time.Time
+	User
 }
 
 func (a Activity) String() string {
@@ -182,8 +184,48 @@ func (a Activity) String() string {
 	for _, inv := range a.inventories {
 		fmt.Fprint(bld, inv)
 	}
+	fmt.Fprintf(bld, "\n\twith user:\n%s", a.User)
 	bld.WriteString("\n========end-activity========")
 	return bld.String()
+}
+
+type UserRole uint8
+
+const (
+	RoleAdminItem UserRole = iota
+	RoleAdminWarehouse
+	RoleAddInventory
+	RoleTakeInventory
+	RolePermitWarehouse
+)
+
+func (UserRole) Enums() []UserRole {
+	return []UserRole{RoleAdminItem, RoleAdminWarehouse, RoleAddInventory,
+		RoleTakeInventory, RolePermitWarehouse}
+}
+
+func (u UserRole) String() string {
+	rolestr := map[UserRole]string{
+		RoleAdminItem:       "admin-item",
+		RoleAdminWarehouse:  "admin-warehouse",
+		RoleAddInventory:    "add-to-warehouse",
+		RoleTakeInventory:   "take-from-warehouse",
+		RolePermitWarehouse: "warehouse-supervisor",
+	}
+	return rolestr[u]
+}
+
+type User struct {
+	Roles    uint32 // from bitfield.New[UserRole]().Value()
+	Id, Name string
+}
+
+func (u User) String() string {
+	return fmt.Sprintf(`
+%10s: %20s
+%10s: %20s
+%10s: %v`, "ID", u.Id, "Name", u.Name, "Role", bitfield.From[UserRole](u.Roles).Sets(),
+	)
 }
 
 func main() {
@@ -191,6 +233,15 @@ func main() {
 	w := NewWarehouseCapacities("test-gudang", map[string]uint64{
 		"pcs": 5_000,
 	})
+	const workermax = 5
+	workers := make([]User, 0, workermax)
+	for i := 0; i < workermax; i++ {
+		workers = append(workers, User{
+			Roles: bitfield.New[UserRole](RoleAddInventory).Value(),
+			Id:    ulid.Make().String(),
+			Name:  fmt.Sprintf("worker-%d", i+1),
+		})
+	}
 	item := Item{
 		Id:   ulid.Make().String(),
 		Name: "onderdil",
@@ -205,17 +256,18 @@ func main() {
 	sentInv := uint64(0)
 	daysMax := 60
 	for sentInv < target {
-		toSent := max(rand.Intn(int(target-sentInv+1)), 0)
-		log.Println("toSent:", toSent)
-		if toSent == 0 {
+		if target-sentInv == 0 {
 			break
 		}
+		toSent := max(rand.Intn(int(target-sentInv+1)), 0)
+		log.Println("toSent:", toSent)
 		inv := Inventory{item, uint64(toSent)}
 		sentInv += uint64(toSent)
 		tosub := max(rand.Intn(daysMax), daysMax/2)
 		daysMax -= tosub
 		thedate := time.Now().Add(24 * time.Hour * -1 * time.Duration(tosub))
-		act := Activity{ItemIn, []Inventory{inv}, ulid.Make().String(), w.Id, thedate}
+		act := Activity{ItemIn, []Inventory{inv}, ulid.Make().String(),
+			w.Id, thedate, workers[rand.Intn(workermax)]}
 		w.AddInventory(item.Id, inv)
 		log.Println("activity:\n", act)
 	}
