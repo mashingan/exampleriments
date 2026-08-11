@@ -221,10 +221,16 @@ type User struct {
 }
 
 func (u User) String() string {
+	// center := func(t string) string {
+	// 	return strings.Repeat(" ", 10-(len(t)+1)/2) + t + strings.Repeat(" ", 10-(len(t)+1)/2)
+	// }
 	return fmt.Sprintf(`
-%10s: %20s
-%10s: %20s
-%10s: %v`, "ID", u.Id, "Name", u.Name, "Role", bitfield.From[UserRole](u.Roles).Sets(),
+%-10s: %26s
+%-10s: %26s
+%-10s: %v`,
+		"ID", u.Id,
+		"Name", u.Name,
+		"Role", bitfield.From[UserRole](u.Roles).Sets(),
 	)
 }
 
@@ -235,9 +241,9 @@ func main() {
 	})
 	const workermax = 5
 	workers := make([]User, 0, workermax)
-	for i := 0; i < workermax; i++ {
+	for i := range workermax {
 		workers = append(workers, User{
-			Roles: bitfield.New[UserRole](RoleAddInventory).Value(),
+			Roles: bitfield.New(RoleAddInventory).Value(),
 			Id:    ulid.Make().String(),
 			Name:  fmt.Sprintf("worker-%d", i+1),
 		})
