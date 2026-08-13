@@ -192,7 +192,7 @@ func (a Activity) String() string {
 	return bld.String()
 }
 
-type UserRole uint8
+type UserRole uint16
 
 const (
 	RoleAdminItem UserRole = iota
@@ -200,11 +200,24 @@ const (
 	RoleAddInventory
 	RoleTakeInventory
 	RolePermitWarehouse
+	RoleAddValidator
+	RoleTakeValidator
+	RoleAddAccepter
+	RoleTakeAccepter
 )
 
 func (UserRole) Enums() []UserRole {
-	return []UserRole{RoleAdminItem, RoleAdminWarehouse, RoleAddInventory,
-		RoleTakeInventory, RolePermitWarehouse}
+	return []UserRole{
+		RoleAdminItem,
+		RoleAdminWarehouse,
+		RoleAddInventory,
+		RoleTakeInventory,
+		RolePermitWarehouse,
+		RoleAddValidator,
+		RoleTakeValidator,
+		RoleAddAccepter,
+		RoleTakeAccepter,
+	}
 }
 
 func (u UserRole) String() string {
@@ -235,4 +248,26 @@ func (u User) String() string {
 		"Name", u.Name,
 		"Role", bitfield.From[UserRole](u.Roles).Sets(),
 	)
+}
+
+type DocType uint8
+
+const (
+	GoodsReceipt DocType = iota
+	DeliveryNote
+	Adjustment
+)
+
+type DocProgress uint8
+
+const (
+	ReceiptDraft DocProgress = iota
+	ReceiptValidate
+	ReceiptAccepted
+	ReceiptCancelled
+)
+
+type Receipt struct {
+	Type     DocType
+	Progress DocProgress
 }
