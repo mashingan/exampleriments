@@ -1,10 +1,8 @@
-package main
+package wareware
 
 import (
 	"fmt"
-	"log"
 	"maps"
-	"math/rand"
 	"strings"
 	"time"
 
@@ -170,6 +168,11 @@ type Activity struct {
 	User
 }
 
+func MakeActivity(f ItemInOut, inv []Inventory, id, warehouse string,
+	datetime time.Time, user User) Activity {
+	return Activity{f, inv, id, warehouse, datetime, user}
+}
+
 func (a Activity) String() string {
 	bld := &strings.Builder{}
 	itemsflow := "items in"
@@ -232,52 +235,4 @@ func (u User) String() string {
 		"Name", u.Name,
 		"Role", bitfield.From[UserRole](u.Roles).Sets(),
 	)
-}
-
-func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	w := NewWarehouseCapacities("test-gudang", map[string]uint64{
-		"pcs": 5_000,
-	})
-	const workermax = 5
-	workers := make([]User, 0, workermax)
-	for i := range workermax {
-		workers = append(workers, User{
-			Roles: bitfield.New(RoleAddInventory).Value(),
-			Id:    ulid.Make().String(),
-			Name:  fmt.Sprintf("worker-%d", i+1),
-		})
-	}
-	item := Item{
-		Id:   ulid.Make().String(),
-		Name: "onderdil",
-		Unit: "pcs",
-		Infos: map[string]Fields{
-			"part-code":       {FieldAlpha, "part-code", "ab333L", ""},
-			"production-year": {FieldNumeric, "production-year", "2020", ""},
-			"gen":             {FieldAlpha, "gen", "1Q2", ""},
-		},
-	}
-	target, _ := w.Cap("pcs")
-	sentInv := uint64(0)
-	daysMax := 60
-	for sentInv < target {
-		if target-sentInv == 0 {
-			break
-		}
-		toSent := max(rand.Intn(int(target-sentInv+1)), 0)
-		log.Println("toSent:", toSent)
-		inv := Inventory{item, uint64(toSent)}
-		sentInv += uint64(toSent)
-		tosub := max(rand.Intn(daysMax), daysMax/2)
-		daysMax -= tosub
-		thedate := time.Now().Add(24 * time.Hour * -1 * time.Duration(tosub))
-		act := Activity{ItemIn, []Inventory{inv}, ulid.Make().String(),
-			w.Id, thedate, workers[rand.Intn(workermax)]}
-		w.AddInventory(item.Id, inv)
-		log.Println("activity:\n", act)
-	}
-	fmt.Printf("%#v\n", *w)
-	fmt.Println(w)
-
 }
