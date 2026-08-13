@@ -55,7 +55,11 @@ func main() {
 		if target-sentInv == 0 {
 			break
 		}
-		toSent := max(rand.Intn(int(target-sentInv+1)), 0)
+		restQty := target - sentInv
+		toSent := int(restQty)
+		if restQty > 100 {
+			toSent = max(rand.Intn(int(restQty+1)), 0)
+		}
 		log.Println("toSent:", toSent)
 		inv := wareware.Inventory{item, uint64(toSent)}
 		sentInv += uint64(toSent)
