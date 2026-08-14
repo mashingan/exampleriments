@@ -220,14 +220,19 @@ func (UserRole) Enums() []UserRole {
 	}
 }
 
+var rolestr = map[UserRole]string{
+	RoleAdminItem:       "admin-item",
+	RoleAdminWarehouse:  "admin-warehouse",
+	RoleAddInventory:    "add-to-warehouse",
+	RoleTakeInventory:   "take-from-warehouse",
+	RolePermitWarehouse: "warehouse-supervisor",
+	RoleAddValidator:    "add-validator",
+	RoleTakeValidator:   "take-validator",
+	RoleAddAccepter:     "add-signer",
+	RoleTakeAccepter:    "take-signer",
+}
+
 func (u UserRole) String() string {
-	rolestr := map[UserRole]string{
-		RoleAdminItem:       "admin-item",
-		RoleAdminWarehouse:  "admin-warehouse",
-		RoleAddInventory:    "add-to-warehouse",
-		RoleTakeInventory:   "take-from-warehouse",
-		RolePermitWarehouse: "warehouse-supervisor",
-	}
 	return rolestr[u]
 }
 
@@ -250,6 +255,10 @@ func (u User) String() string {
 	)
 }
 
+// DocType is the document needed when adding inventory (GoodsReceipt),
+// taking inventory (DeliveryNote), and documents adjustment (Adjustment).
+// Note that each document cannot be edited only be adjusted with newly
+// document.
 type DocType uint8
 
 const (
@@ -258,16 +267,44 @@ const (
 	Adjustment
 )
 
+func (d DocType) String() string {
+	return []string{"GR", "DN", "AD"}[d]
+}
+
 type DocProgress uint8
 
 const (
 	ReceiptDraft DocProgress = iota
 	ReceiptValidate
 	ReceiptAccepted
-	ReceiptCancelled
+	ReceiptCanceled
+	ReceiptInvalid
 )
 
+var receiptmapstr = map[DocProgress]string{
+	ReceiptDraft:    "DRAFT",
+	ReceiptValidate: "VALIDATING",
+	ReceiptAccepted: "DONE",
+	ReceiptCanceled: "CANCEL",
+	ReceiptInvalid:  "INVALID",
+}
+
+func (p DocProgress) String() string {
+	return receiptmapstr[p]
+}
+
+// Receipt has progress of
+// Draft   	-> Checked/Validated 	-> done/canceled/invalid
+// ReceiptDraft -> ReceiptValidate 	-> ReceiptAccepted/ReceiptCanceled/ReceiptInvalid
+// created 	-> on progress checking -> doc final status
+// This receipt will be needed as accompanying activity as proof of details of
+// inventories added.
 type Receipt struct {
-	Type     DocType
-	Progress DocProgress
+	Type        DocType
+	Progress    DocProgress
+	Id          string
+	SignedBy    string // when accepted, user-id
+	ValidatedBy string // user-id
+	Code        string // formula: {Type}-{YearMonth}-{Number}
+	Reason      string // optional if the type is adjustment (AD)
 }
