@@ -66,9 +66,10 @@ func main() {
 		tosub := max(rand.Intn(daysMax), daysMax/2)
 		daysMax -= tosub
 		thedate := time.Now().Add(24 * time.Hour * -1 * time.Duration(tosub))
-		act := wareware.MakeActivity(
-			wareware.ItemIn, []wareware.Inventory{inv}, ulid.Make().String(),
-			w.Id, thedate, workers[rand.Intn(workermax)])
+		act := wareware.NewActivity(
+			wareware.ItemIn, []wareware.Inventory{inv},
+			w.Id, workers[rand.Intn(workermax)])
+		act.SetDatetime(thedate)
 		w.AddInventory(item.Id, inv)
 		log.Println("activity:\n", act)
 	}

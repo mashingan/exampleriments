@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"maps"
 	"strings"
-	"time"
 
 	"github.com/mashingan/bitfield"
 	"github.com/oklog/ulid/v2"
@@ -159,38 +158,6 @@ const (
 	ItemIn ItemInOut = iota
 	ItemOut
 )
-
-type Activity struct {
-	flowitem      ItemInOut
-	inventories   []Inventory
-	id, warehouse string // warehouse using id
-	datetime      time.Time
-	User
-}
-
-func MakeActivity(f ItemInOut, inv []Inventory, id, warehouse string,
-	datetime time.Time, user User) Activity {
-	return Activity{f, inv, id, warehouse, datetime, user}
-}
-
-func (a Activity) String() string {
-	bld := &strings.Builder{}
-	itemsflow := "items in"
-	if a.flowitem == ItemOut {
-		itemsflow = "items out"
-	}
-
-	bld.WriteString("======start-activity========\n")
-	fmt.Fprintf(bld, "At time %s, there's %s with list:\n",
-		a.datetime.Format("Monday 15:04:05+07 02-Jan-2006"),
-		itemsflow)
-	for _, inv := range a.inventories {
-		fmt.Fprint(bld, inv)
-	}
-	fmt.Fprintf(bld, "\n\twith user:\n%s", a.User)
-	bld.WriteString("\n========end-activity========")
-	return bld.String()
-}
 
 type UserRole uint16
 
