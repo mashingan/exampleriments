@@ -1,7 +1,10 @@
 module main
 
-go 1.16
+go 1.21
 
-require github.com/mashingan/smapping v0.1.19
+require (
+	github.com/mashingan/smapping v0.1.19
+	github.com/mattn/go-sqlite3 v1.14.50
+)
 
-//replace github.com/mashingan/smapping v0.1.15 => d:/dev/go/src/github.com/mashingan/smapping
+replace github.com/mashingan/smapping v0.1.19 => ../smapping
