@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
+	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -17,6 +19,16 @@ func main() {
 	const port = 1521
 	const tbname = "dev_migration"
 	const dback = "backup.db"
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == slog.SourceKey {
+				s := a.Value.Any().(*slog.Source)
+				s.File = path.Base(s.File)
+			}
+			return a
+		},
+	})))
 	connStr := ora.BuildUrl("localhost", port, "freepdb1", "dev1", "dev1", nil)
 	slog.Info("", "connStr", connStr)
 	db, err := sql.Open("oracle", connStr)
