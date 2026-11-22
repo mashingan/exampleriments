@@ -185,7 +185,7 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 				Icon:    lucide.Galaxy,
 				Variant: ui.IconButtonRaised,
 				OnPress: func() {
-					slog.Debug("IconFloating", "OnPress", "Here")
+					slog.Debug("IconFloating:OnPress")
 					nav.Push("Setting")
 				},
 				Tint: func() core.Color {
@@ -195,16 +195,32 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 		},
 	}
 	settinginfo := ui.Textf(urlsetting.Get, 14, ui.Regular, colors.Text)
-	settinginfo.Selectable = core.SelectableOn
+	prevTouch := time.Time{}
 	return core.View{
 		Style: core.Style{
 			FlexGrow: 1, FlexShrink: 1, Padding: core.All(24), PaddingEnv: core.EnvAll(core.EnvSafeArea), Gap: 16,
-			Background: core.RGB(0xffffff),
+			// Background: core.RGB(0xffffff),
 		},
 		OnPress: func(p core.PressEvent) {
 			// slog.Info("OnPress main", "onpress-clicks", p.Clicks)
 			if p.Clicks == 2 {
+				if cx.Env().OS() == "android" {
+					slog.Info("Double click in Android")
+				}
 				floathidden.Set(true)
+			}
+		},
+		OnTouch: func(te core.TouchEvent) {
+			switch te.Phase {
+			case core.TouchStart:
+				return
+			case core.TouchEnd:
+				if prevTouch.After(time.Time{}) && time.Since(prevTouch) <= 500*time.Millisecond {
+					floathidden.Set(true)
+					return
+				}
+				prevTouch = time.Now()
+				return
 			}
 		},
 		Children: []core.Node{
@@ -235,7 +251,6 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 				},
 			},
 			core.View{
-				// Style: core.Style{Width: core.Pct(40)},
 				Style: core.Style{Direction: core.Row, Gap: 10},
 				Children: []core.Node{
 					ui.Text("Setting:", 14, ui.Semibold, colors.Text),
@@ -256,6 +271,7 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 					},
 				},
 			},
+			ui.Spacer{},
 		},
 	}
 }
@@ -265,7 +281,7 @@ func settingInfo(cx *core.Scope, nav *base.Nav[string], url *core.Signal[string]
 		Title: "Setting",
 		Children: []core.Node{
 			core.View{
-				Style: core.Style{Direction: core.Row, Gap: 16, Padding: core.All(10)},
+				Style: core.Style{Direction: core.Row, Gap: 16, Padding: core.All(10), Height: core.Pct(10)},
 				Children: []core.Node{
 					ui.Input{
 						Style:       core.Style{FlexGrow: 1},
@@ -283,13 +299,16 @@ func settingInfo(cx *core.Scope, nav *base.Nav[string], url *core.Signal[string]
 				},
 			},
 		},
-	}, ui.NavHeader{})
+	}, ui.NavHeader{
+		Trailing: []core.Node{switchTheme(cx)},
+	})
 
 }
 
 func Root(cx *core.Scope) core.Node {
 	nav := base.NewNav(cx, "Main", "Front")
 	urlsetting := core.NewSignal(cx, "")
+	env := cx.Env()
 	return nav.Stack(core.Style{FlexGrow: 1}, func(cx *core.Scope, route string, depth func() int) base.NavPage {
 		slog.Debug("Root:stack", "route", route)
 		switch route {
@@ -301,6 +320,7 @@ func Root(cx *core.Scope) core.Node {
 				},
 			}, ui.NavHeader{
 				Trailing: []core.Node{
+					switchTheme(cx),
 					ui.IconButton{Icon: lucide.House, Label: "Front",
 						Variant: ui.IconButtonRaised, OnPress: func() { nav.Push("Front") }},
 				},
@@ -308,19 +328,52 @@ func Root(cx *core.Scope) core.Node {
 		case "Setting":
 			return settingInfo(cx, nav, urlsetting)
 		}
+		colors := ui.ColorsOf(cx)
+		infos := []core.Node{}
+		cx.SetAppearance(core.AppearanceLight)
+		for _, s := range []string{
+			fmt.Sprintf("Is desktop: %t", env.Desktop()),
+			fmt.Sprintf("Device name: %s", env.DeviceName()),
+			fmt.Sprintf("Device model: %s", env.DeviceModel()),
+			fmt.Sprintf("Locale: %s", env.Locale()),
+			fmt.Sprintf("OS: %s", env.OS()),
+			fmt.Sprintf("OS version: %s", env.OSVersion()),
+			fmt.Sprintf("Is dark theme? %t", env.Dark()),
+		} {
+			infos = append(infos, ui.Text(s, 14, ui.Regular, colors.Text))
+		}
 		return ui.NavPage(cx, base.NavPage{
 			Title:       "Front base",
 			OnBackPress: func() { nav.Pop(1) },
-			Children:    []core.Node{},
+			Children: []core.Node{
+				core.View{
+					Style:    core.Style{Margin: core.All(10)},
+					Children: infos,
+				},
+			},
 		}, ui.NavHeader{
 			OnBack:    func() { nav.Pop(1) },
 			BackLabel: "Main",
 			Trailing: []core.Node{
-				ui.IconButton{Icon: lucide.Archive, Label: "Archive",
-					Variant: ui.IconButtonGhost, OnPress: func() {}},
+				// ui.IconButton{Icon: lucide.Archive, Label: "Archive",
+				// 	Variant: ui.IconButtonGhost, OnPress: func() {}},
+				switchTheme(cx),
 			},
 		})
 	})
+}
+
+func switchTheme(cx *core.Scope) core.Node {
+	return ui.IconButton{Icon: lucide.SunMoon, Label: "Switch-Theme",
+		Variant: ui.IconButtonGhost, OnPress: func() {
+
+			appearance := core.AppearanceDark
+			if cx.Dark() {
+				appearance = core.AppearanceLight
+			}
+			cx.SetAppearance(appearance)
+		},
+	}
 }
 
 func main() { nsgo.Run(Root) }
