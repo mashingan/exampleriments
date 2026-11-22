@@ -2,7 +2,7 @@ module nsgo-try
 
 go 1.27.3
 
-require github.com/nsgo-dev/nsgo v0.1.0
+require github.com/nsgo-dev/nsgo v0.2.0
 
 require (
 	github.com/andybalholm/brotli v1.3.0 // indirect
