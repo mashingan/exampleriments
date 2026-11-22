@@ -305,14 +305,8 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 						OnChange: func(value uint8) {
 							toasttype.Set(value)
 						},
-						Placeholder:       "Select toast type",
-						Searchable:        false,
-						SearchPlaceholder: "",
-						Empty:             "",
-						Presentation:      0,
-						Label:             "main-select-toast-type",
-						TestID:            "",
-						Style:             core.Style{},
+						Placeholder: "Select toast type",
+						Label:       "main-select-toast-type",
 					},
 				},
 			},
@@ -354,7 +348,7 @@ func settingInfo(cx *core.Scope, nav *base.Nav[string], url *core.Signal[string]
 			},
 		},
 	}, ui.NavHeader{
-		Trailing: []core.Node{switchTheme(cx)},
+		Trailing: []core.Node{switchThemeButton(cx)},
 	})
 
 }
@@ -374,9 +368,18 @@ func Root(cx *core.Scope) core.Node {
 				},
 			}, ui.NavHeader{
 				Trailing: []core.Node{
-					switchTheme(cx),
-					ui.IconButton{Icon: lucide.House, Label: "Front",
-						Variant: ui.IconButtonRaised, OnPress: func() { nav.Push("Front") }},
+					ui.Menu{
+						Trigger: ui.Button{Icon: lucide.EllipsisVertical},
+						Children: []core.Node{
+							ui.MenuItem{
+								// switchTheme(cx),
+								Text:     "Switch theme",
+								Icon:     lucide.SunMoon,
+								OnSelect: switchTheme(cx),
+							},
+							ui.MenuItem{Text: "Front", Icon: lucide.House, OnSelect: func() { nav.Push("Front") }},
+						},
+					},
 				},
 			})
 		case "Setting":
@@ -384,7 +387,6 @@ func Root(cx *core.Scope) core.Node {
 		}
 		colors := ui.ColorsOf(cx)
 		infos := []core.Node{}
-		cx.SetAppearance(core.AppearanceLight)
 		for _, s := range []string{
 			fmt.Sprintf("Is desktop: %t", env.Desktop()),
 			fmt.Sprintf("Device name: %s", env.DeviceName()),
@@ -409,24 +411,26 @@ func Root(cx *core.Scope) core.Node {
 			OnBack:    func() { nav.Pop(1) },
 			BackLabel: "Main",
 			Trailing: []core.Node{
-				// ui.IconButton{Icon: lucide.Archive, Label: "Archive",
-				// 	Variant: ui.IconButtonGhost, OnPress: func() {}},
-				switchTheme(cx),
+				switchThemeButton(cx),
 			},
 		})
 	})
 }
 
-func switchTheme(cx *core.Scope) core.Node {
-	return ui.IconButton{Icon: lucide.SunMoon, Label: "Switch-Theme",
-		Variant: ui.IconButtonGhost, OnPress: func() {
+func switchTheme(cx *core.Scope) func() {
+	return func() {
+		appearance := core.AppearanceDark
+		if cx.Dark() {
+			appearance = core.AppearanceLight
+		}
+		cx.SetAppearance(appearance)
+	}
 
-			appearance := core.AppearanceDark
-			if cx.Dark() {
-				appearance = core.AppearanceLight
-			}
-			cx.SetAppearance(appearance)
-		},
+}
+
+func switchThemeButton(cx *core.Scope) core.Node {
+	return ui.IconButton{Icon: lucide.SunMoon, Label: "Switch-Theme",
+		Variant: ui.IconButtonRaised, OnPress: switchTheme(cx),
 	}
 }
 
