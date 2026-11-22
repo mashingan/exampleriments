@@ -197,9 +197,11 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 	settinginfo := ui.Textf(urlsetting.Get, 14, ui.Regular, colors.Text)
 	toast := ui.NewToaster(cx)
 	toasttype := core.NewSignal(cx, uint8(0))
+	// link2visit := core.NewSignal(cx, "")
 	return core.View{
 		Style: core.Style{
 			FlexGrow: 1, FlexShrink: 1, Padding: core.All(24), PaddingEnv: core.EnvAll(core.EnvSafeArea), Gap: 16,
+			OverflowX: core.OverflowScroll,
 			// Background: core.RGB(0xffffff),
 		},
 		OnPress: func(p core.PressEvent) {
@@ -318,6 +320,10 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 				Inset:      0,
 				CloseLabel: "main-toast-info-close",
 				TestID:     "main-toast-info",
+			},
+			ui.Link{
+				Text: "https://example.com",
+				Href: "https://example.com",
 			},
 			ui.Spacer{},
 		},
