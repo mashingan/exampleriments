@@ -282,6 +282,7 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 				Text: "https://example.com",
 				Href: "https://example.com",
 			},
+			todoList(cx),
 			ui.Spacer{},
 		},
 	}
@@ -334,6 +335,150 @@ func selectToastType(cx *core.Scope) []core.Node {
 			Inset:      0,
 			CloseLabel: "main-toast-info-close",
 			TestID:     "main-toast-info",
+		},
+	}
+}
+
+func todoList(cx *core.Scope) core.Node {
+	type itemRow struct {
+		id     int
+		action string
+		isDone bool
+	}
+	items := make([]itemRow, 0, 12)
+	for i := range 12 {
+		items = append(items, itemRow{i, fmt.Sprintf("task-%02d", i), false})
+	}
+	nextid := core.NewSignal(cx, len(items))
+	listItem := core.NewSignalFunc(cx, items, nil)
+	colors := ui.ColorsOf(cx)
+	addTaskText := core.NewSignal(cx, "")
+	listItemUpdate := func() {
+		task := strings.TrimSpace(addTaskText.Get())
+		if task == "" {
+			return
+		}
+		id := nextid.Get()
+		nextid.Set(id + 1)
+		listItem.Update(func(ir []itemRow) []itemRow {
+			return append(ir, itemRow{id, task, false})
+		})
+		addTaskText.Set("")
+	}
+	return core.View{
+		Style: core.Style{
+			OverflowY:   core.OverflowScroll,
+			Borders:     core.All(2),
+			BorderCurve: core.BorderCurveCircular,
+			CornerRadii: core.AllCorners(10),
+		},
+		Children: []core.Node{
+			core.List{
+				Count: func() int {
+					return len(listItem.Get())
+				},
+				Key: func(i int) any {
+					return listItem.Get()[i].id
+				},
+				Row: func(cx *core.Scope, row core.ListRow) core.Node {
+					index := row.Index()
+					item := listItem.Get()[index]
+					slog.Info("todoList:row", "row", row, "index", index, "item", item)
+					return core.View{
+						Style: core.Style{Direction: core.Row},
+						Children: []core.Node{
+							ui.Checkbox{
+								Checked: func() bool {
+									for _, x := range listItem.Get() {
+										if x.id == index {
+											return x.isDone
+										}
+									}
+									return false
+								},
+								OnChange: func(checked bool) {
+									slog.Info("todoList:row:onchange", "items", listItem.Get(), "checked", checked)
+									listItem.Update(func(ir []itemRow) []itemRow {
+										li := append([]itemRow(nil), ir...)
+										for i := range ir {
+											if li[i].id == index {
+												li[i].isDone = checked
+											}
+										}
+										return li
+									})
+								},
+								Text:  item.action,
+								Style: core.Style{FlexGrow: 1, FlexShrink: 1},
+							},
+							ui.IconButton{
+								Icon: lucide.Trash,
+								// Label: "Button Trash to remove task",
+								Variant: ui.IconButtonGhost,
+								OnPress: func() {
+									listItem.Update(func(item []itemRow) []itemRow {
+										out := make([]itemRow, 0, len(item))
+										for _, x := range item {
+											if x.id != index {
+												out = append(out, x)
+											}
+										}
+										return out
+										// return slices.Delete(item, index, index+1)
+									})
+								},
+								// TestID: fmt.Sprintf("todo-checkbox-button-x-%d", index),
+							},
+						},
+					}
+				},
+				EstimatedSize: 0,
+				Gap:           0,
+				Header: core.View{
+					Style: core.Style{},
+					Children: []core.Node{
+						ui.Textf(func() string {
+							li := listItem.Get()
+							done := 0
+							for _, it := range li {
+								if it.isDone {
+									done++
+								}
+							}
+							return fmt.Sprintf("Our current task is %d, with done %d",
+								len(li), done)
+						}, 12, ui.Regular, colors.Faint),
+						core.View{
+							Style: core.Style{Direction: core.Row},
+							Children: []core.Node{
+								ui.Input{
+									Style:       core.Style{FlexGrow: 1, Width: core.Pct(70)},
+									Value:       addTaskText.Get,
+									OnChange:    addTaskText.Set,
+									Placeholder: "Add more task!",
+									OnSubmit: func(text string) {
+										if text == "" {
+											return
+										}
+										listItemUpdate()
+									},
+								},
+								ui.Spacer{},
+								ui.Button{Text: "Add Task", Icon: lucide.Plus, OnPress: listItemUpdate},
+							},
+						},
+					},
+				},
+				Footer: nil,
+				Empty: core.View{
+					Style: core.Style{
+						JustifyContent: core.JustifyCenter,
+					},
+					Children: []core.Node{
+						ui.Text("Empty task, add more task", 24, ui.Bold, colors.Text),
+					},
+				},
+			},
 		},
 	}
 }
