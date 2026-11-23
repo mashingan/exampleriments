@@ -365,10 +365,19 @@ func todoList(cx *core.Scope) core.Node {
 		})
 		addTaskText.Set("")
 	}
+	redc := core.RGB(0xff0000)
+	yellowc := core.RGB(0xffff00)
+	greenc := core.RGB(0x00ff00)
 	return core.List{
 		Style: core.Style{
 			Borders:     core.All(2),
 			CornerRadii: core.AllCorners(10),
+			BorderColors: core.EdgeColors{
+				Top:    greenc,
+				Right:  greenc.Faded(0.5),
+				Bottom: greenc.Faded(0.2),
+				Left:   greenc.Faded(0.7),
+			},
 			Gradients: []core.Gradient{
 				{
 					Kind:     core.GradientLinear,
@@ -378,12 +387,20 @@ func todoList(cx *core.Scope) core.Node {
 					Extent:   core.ExtentFarthestSide,
 					Center:   core.ObjectPosition{},
 					Stops: []core.ColorStop{
-						{Color: core.RGB(0xff0000), At: core.Pct(50)},
-						{Color: core.RGB(0xffff00), At: core.Pct(100)},
+						{Color: redc, At: core.Pct(25)},
+						{Color: redc.Faded(0.314), At: core.Pct(50)},
+						{Color: redc.Faded(0.633), At: core.Pct(75)},
+						{Color: yellowc, At: core.Pct(100)},
 					},
-					Repeating: true,
+					Repeating: false,
 					Space:     0,
 				},
+			},
+			Transition: core.Transition{
+				Duration: 300 * time.Millisecond,
+				Delay:    50 * time.Millisecond,
+				Easing:   core.EaseIn,
+				// Properties: core.TransitionBorder,
 			},
 		},
 		Count: func() int {
