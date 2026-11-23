@@ -195,8 +195,7 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 		},
 	}
 	settinginfo := ui.Textf(urlsetting.Get, 14, ui.Regular, colors.Text)
-	toast := ui.NewToaster(cx)
-	toasttype := core.NewSignal(cx, uint8(0))
+	demoToast := selectToastType(cx)
 	// link2visit := core.NewSignal(cx, "")
 	return core.View{
 		Style: core.Style{
@@ -277,55 +276,64 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 					},
 				},
 			},
-			core.View{
-				Style: core.Style{Direction: core.Row, Gap: 8},
-				Children: []core.Node{
-					ui.Button{
-						Text:   "Show Toast",
-						TestID: "show-main-toast",
-						Style:  core.Style{Width: core.Pct(40)},
-						OnPress: func() {
-							slog.Debug("main:ui.Button:OnPress")
-							toast.Show(ui.ToastContent{
-								// ID:          "toast-main-info",
-								Type:        ui.ToastType(toasttype.Get()),
-								Title:       "Break Info",
-								Description: "toast-info",
-								Duration:    2 * time.Second,
-							})
-						},
-					},
-					ui.Select[uint8]{
-						Options: []ui.Option[uint8]{
-							{Value: 0, Label: "Plain"},
-							{Value: 1, Label: "Info"},
-							{Value: 2, Label: "Success"},
-							{Value: 3, Label: "Warning"},
-							{Value: 4, Label: "Error"},
-						},
-						Value: toasttype.Get,
-						OnChange: func(value uint8) {
-							toasttype.Set(value)
-						},
-						Placeholder: "Select toast type",
-						Label:       "main-select-toast-type",
-					},
-				},
-			},
-			ui.Toasts{
-				Toaster:    toast,
-				Placement:  0,
-				Reverse:    false,
-				Swipe:      0,
-				Inset:      0,
-				CloseLabel: "main-toast-info-close",
-				TestID:     "main-toast-info",
-			},
+			demoToast[0],
+			demoToast[1],
 			ui.Link{
 				Text: "https://example.com",
 				Href: "https://example.com",
 			},
 			ui.Spacer{},
+		},
+	}
+}
+
+func selectToastType(cx *core.Scope) []core.Node {
+	toasttype := core.NewSignal(cx, uint8(0))
+	toast := ui.NewToaster(cx)
+	return []core.Node{
+		core.View{
+			Style: core.Style{Direction: core.Row, Gap: 8},
+			Children: []core.Node{
+				ui.Button{
+					Text:   "Show Toast",
+					TestID: "show-main-toast",
+					Style:  core.Style{Width: core.Pct(40)},
+					OnPress: func() {
+						slog.Debug("main:ui.Button:OnPress")
+						toast.Show(ui.ToastContent{
+							// ID:          "toast-main-info",
+							Type:        ui.ToastType(toasttype.Get()),
+							Title:       "Break Info",
+							Description: "toast-info",
+							Duration:    2 * time.Second,
+						})
+					},
+				},
+				ui.Select[uint8]{
+					Options: []ui.Option[uint8]{
+						{Value: 0, Label: "Plain"},
+						{Value: 1, Label: "Info"},
+						{Value: 2, Label: "Success"},
+						{Value: 3, Label: "Warning"},
+						{Value: 4, Label: "Error"},
+					},
+					Value: toasttype.Get,
+					OnChange: func(value uint8) {
+						toasttype.Set(value)
+					},
+					Placeholder: "Select toast type",
+					Label:       "main-select-toast-type",
+				},
+			},
+		},
+		ui.Toasts{
+			Toaster:    toast,
+			Placement:  0,
+			Reverse:    false,
+			Swipe:      0,
+			Inset:      0,
+			CloseLabel: "main-toast-info-close",
+			TestID:     "main-toast-info",
 		},
 	}
 }
