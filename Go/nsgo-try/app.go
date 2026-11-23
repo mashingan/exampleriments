@@ -353,7 +353,7 @@ func todoList(cx *core.Scope) core.Node {
 	listItem := core.NewSignalFunc(cx, items, nil)
 	colors := ui.ColorsOf(cx)
 	addTaskText := core.NewSignal(cx, "")
-	listItemUpdate := func() {
+	listAdd := func() {
 		task := strings.TrimSpace(addTaskText.Get())
 		if task == "" {
 			return
@@ -365,119 +365,129 @@ func todoList(cx *core.Scope) core.Node {
 		})
 		addTaskText.Set("")
 	}
-	return core.View{
+	return core.List{
 		Style: core.Style{
-			OverflowY:   core.OverflowScroll,
 			Borders:     core.All(2),
-			BorderCurve: core.BorderCurveCircular,
 			CornerRadii: core.AllCorners(10),
+			Gradients: []core.Gradient{
+				{
+					Kind:     core.GradientLinear,
+					Angle:    90,
+					ToCorner: core.ToBottomRight,
+					Circle:   false,
+					Extent:   core.ExtentFarthestSide,
+					Center:   core.ObjectPosition{},
+					Stops: []core.ColorStop{
+						{Color: core.RGB(0xff0000), At: core.Pct(50)},
+						{Color: core.RGB(0xffff00), At: core.Pct(100)},
+					},
+					Repeating: true,
+					Space:     0,
+				},
+			},
 		},
-		Children: []core.Node{
-			core.List{
-				Count: func() int {
-					return len(listItem.Get())
-				},
-				Key: func(i int) any {
-					return listItem.Get()[i].id
-				},
-				Row: func(cx *core.Scope, row core.ListRow) core.Node {
-					index := row.Index()
-					item := listItem.Get()[index]
-					slog.Info("todoList:row", "row", row, "index", index, "item", item)
-					return core.View{
-						Style: core.Style{Direction: core.Row},
-						Children: []core.Node{
-							ui.Checkbox{
-								Checked: func() bool {
-									for _, x := range listItem.Get() {
-										if x.id == index {
-											return x.isDone
-										}
-									}
-									return false
-								},
-								OnChange: func(checked bool) {
-									slog.Info("todoList:row:onchange", "items", listItem.Get(), "checked", checked)
-									listItem.Update(func(ir []itemRow) []itemRow {
-										li := append([]itemRow(nil), ir...)
-										for i := range ir {
-											if li[i].id == index {
-												li[i].isDone = checked
-											}
-										}
-										return li
-									})
-								},
-								Text:  item.action,
-								Style: core.Style{FlexGrow: 1, FlexShrink: 1},
-							},
-							ui.IconButton{
-								Icon: lucide.Trash,
-								// Label: "Button Trash to remove task",
-								Variant: ui.IconButtonGhost,
-								OnPress: func() {
-									listItem.Update(func(item []itemRow) []itemRow {
-										out := make([]itemRow, 0, len(item))
-										for _, x := range item {
-											if x.id != index {
-												out = append(out, x)
-											}
-										}
-										return out
-										// return slices.Delete(item, index, index+1)
-									})
-								},
-								// TestID: fmt.Sprintf("todo-checkbox-button-x-%d", index),
-							},
-						},
-					}
-				},
-				EstimatedSize: 0,
-				Gap:           0,
-				Header: core.View{
-					Style: core.Style{},
-					Children: []core.Node{
-						ui.Textf(func() string {
-							li := listItem.Get()
-							done := 0
-							for _, it := range li {
-								if it.isDone {
-									done++
+		Count: func() int {
+			return len(listItem.Get())
+		},
+		Key: func(i int) any {
+			return listItem.Get()[i].id
+		},
+		Row: func(cx *core.Scope, row core.ListRow) core.Node {
+			index := row.Index()
+			item := listItem.Get()[index]
+			slog.Info("todoList:row", "row", row, "index", index, "item", item)
+			return core.View{
+				Style: core.Style{Direction: core.Row, Margin: core.Symmetric(0, 5)},
+				Children: []core.Node{
+					ui.Checkbox{
+						Checked: func() bool {
+							for _, x := range listItem.Get() {
+								if x.id == index {
+									return x.isDone
 								}
 							}
-							return fmt.Sprintf("Our current task is %d, with done %d",
-								len(li), done)
-						}, 12, ui.Regular, colors.Faint),
-						core.View{
-							Style: core.Style{Direction: core.Row},
-							Children: []core.Node{
-								ui.Input{
-									Style:       core.Style{FlexGrow: 1, Width: core.Pct(70)},
-									Value:       addTaskText.Get,
-									OnChange:    addTaskText.Set,
-									Placeholder: "Add more task!",
-									OnSubmit: func(text string) {
-										if text == "" {
-											return
-										}
-										listItemUpdate()
-									},
-								},
-								ui.Spacer{},
-								ui.Button{Text: "Add Task", Icon: lucide.Plus, OnPress: listItemUpdate},
+							return false
+						},
+						OnChange: func(checked bool) {
+							slog.Info("todoList:row:onchange", "items", listItem.Get(), "checked", checked)
+							listItem.Update(func(ir []itemRow) []itemRow {
+								li := append([]itemRow(nil), ir...)
+								for i := range ir {
+									if li[i].id == item.id {
+										li[i].isDone = checked
+									}
+								}
+								return li
+							})
+						},
+						Text:  item.action,
+						Style: core.Style{FlexGrow: 1, FlexShrink: 1},
+					},
+					ui.IconButton{
+						Icon: lucide.Trash,
+						// Label: "Button Trash to remove task",
+						Variant: ui.IconButtonGhost,
+						OnPress: func() {
+							listItem.Update(func(items []itemRow) []itemRow {
+								out := make([]itemRow, 0, len(items))
+								for _, x := range items {
+									if x.id != item.id {
+										out = append(out, x)
+									}
+								}
+								return out
+								// return slices.Delete(item, index, index+1)
+							})
+						},
+						// TestID: fmt.Sprintf("todo-checkbox-button-x-%d", index),
+					},
+				},
+			}
+		},
+		EstimatedSize: 0,
+		Gap:           0,
+		Header: core.View{
+			Style: core.Style{Margin: core.All(5)},
+			Children: []core.Node{
+				ui.Textf(func() string {
+					li := listItem.Get()
+					done := 0
+					for _, it := range li {
+						if it.isDone {
+							done++
+						}
+					}
+					return fmt.Sprintf("Our current task is %d, with done %d",
+						len(li), done)
+				}, 12, ui.Regular, colors.Faint),
+				core.View{
+					Style: core.Style{Direction: core.Row},
+					Children: []core.Node{
+						ui.Input{
+							Style:       core.Style{FlexGrow: 1, Width: core.Pct(70)},
+							Value:       addTaskText.Get,
+							OnChange:    addTaskText.Set,
+							Placeholder: "Add more task!",
+							OnSubmit: func(text string) {
+								if text == "" {
+									return
+								}
+								listAdd()
 							},
 						},
+						ui.Spacer{},
+						ui.Button{Text: "Add Task", Icon: lucide.Plus, OnPress: listAdd},
 					},
 				},
-				Footer: nil,
-				Empty: core.View{
-					Style: core.Style{
-						JustifyContent: core.JustifyCenter,
-					},
-					Children: []core.Node{
-						ui.Text("Empty task, add more task", 24, ui.Bold, colors.Text),
-					},
-				},
+			},
+		},
+		Footer: nil,
+		Empty: core.View{
+			Style: core.Style{
+				JustifyContent: core.JustifyCenter,
+			},
+			Children: []core.Node{
+				ui.Text("Empty task, add more task", 24, ui.Bold, colors.Text),
 			},
 		},
 	}
@@ -528,7 +538,7 @@ func Root(cx *core.Scope) core.Node {
 			}, ui.NavHeader{
 				Trailing: []core.Node{
 					ui.Menu{
-						Trigger: ui.Button{Icon: lucide.EllipsisVertical},
+						Trigger: ui.Button{Icon: lucide.EllipsisVertical, Variant: ui.ButtonGhost},
 						Children: []core.Node{
 							ui.MenuItem{
 								// switchTheme(cx),
