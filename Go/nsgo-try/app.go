@@ -395,6 +395,7 @@ func todoList(cx *core.Scope) core.Node {
 					Repeating: false,
 					Space:     0,
 				},
+				core.LinearGradient(275, redc, redc.Faded(0.314), redc.Faded(0.633), yellowc),
 			},
 			Transition: core.Transition{
 				Duration: 300 * time.Millisecond,
