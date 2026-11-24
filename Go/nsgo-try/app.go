@@ -283,7 +283,13 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 				Href: "https://example.com",
 			},
 			todoList(cx),
-			ui.Spacer{},
+			ui.Link{
+				Text: "Go to TodoList 2",
+				OnPress: func() {
+					nav.Push("TodoList2")
+				},
+			},
+			// ui.Spacer{},
 		},
 	}
 }
@@ -346,10 +352,11 @@ func todoList(cx *core.Scope) core.Node {
 		isDone bool
 	}
 	items := make([]itemRow, 0, 12)
-	for i := range 12 {
-		items = append(items, itemRow{i, fmt.Sprintf("task-%02d", i), false})
-	}
-	nextid := core.NewSignal(cx, len(items))
+	// for i := range 12 {
+	// 	items = append(items, itemRow{i, fmt.Sprintf("task-%02d", i), false})
+	// }
+	// nextid := core.NewSignal(cx, len(items))
+	nextid := core.NewSignal(cx, 1)
 	listItem := core.NewSignalFunc(cx, items, nil)
 	colors := ui.ColorsOf(cx)
 	addTaskText := core.NewSignal(cx, "")
@@ -365,11 +372,34 @@ func todoList(cx *core.Scope) core.Node {
 		})
 		addTaskText.Set("")
 	}
+	setDone := func(id int, done bool) {
+		listItem.Update(func(ir []itemRow) []itemRow {
+			next := append([]itemRow(nil), ir...)
+			for i := range next {
+				if next[i].id == id {
+					next[i].isDone = done
+				}
+			}
+			return next
+		})
+	}
+	listRemove := func(id int) {
+		listItem.Update(func(ir []itemRow) []itemRow {
+			out := ir[:0:0]
+			for _, it := range ir {
+				if it.id != id {
+					out = append(out, it)
+				}
+			}
+			return out
+		})
+	}
 	redc := core.RGB(0xff0000)
 	yellowc := core.RGB(0xffff00)
 	greenc := core.RGB(0x00ff00)
 	return core.List{
 		Style: core.Style{
+			FlexGrow:    1,
 			Borders:     core.All(2),
 			CornerRadii: core.AllCorners(10),
 			BorderColors: core.EdgeColors{
@@ -428,15 +458,7 @@ func todoList(cx *core.Scope) core.Node {
 						},
 						OnChange: func(checked bool) {
 							slog.Info("todoList:row:onchange", "items", listItem.Get(), "checked", checked)
-							listItem.Update(func(ir []itemRow) []itemRow {
-								li := append([]itemRow(nil), ir...)
-								for i := range ir {
-									if li[i].id == item.id {
-										li[i].isDone = checked
-									}
-								}
-								return li
-							})
+							setDone(item.id, checked)
 						},
 						Text:  item.action,
 						Style: core.Style{FlexGrow: 1, FlexShrink: 1},
@@ -446,23 +468,14 @@ func todoList(cx *core.Scope) core.Node {
 						// Label: "Button Trash to remove task",
 						Variant: ui.IconButtonGhost,
 						OnPress: func() {
-							listItem.Update(func(items []itemRow) []itemRow {
-								out := make([]itemRow, 0, len(items))
-								for _, x := range items {
-									if x.id != item.id {
-										out = append(out, x)
-									}
-								}
-								return out
-								// return slices.Delete(item, index, index+1)
-							})
+							listRemove(item.id)
 						},
 						// TestID: fmt.Sprintf("todo-checkbox-button-x-%d", index),
 					},
 				},
 			}
 		},
-		EstimatedSize: 0,
+		EstimatedSize: 44,
 		Gap:           0,
 		Header: core.View{
 			Style: core.Style{Margin: core.All(5)},
@@ -509,6 +522,115 @@ func todoList(cx *core.Scope) core.Node {
 			},
 		},
 	}
+}
+
+func todoList2(cx *core.Scope, nav *base.Nav[string]) base.NavPage {
+	type todo struct {
+		id   int
+		text string
+		done bool
+	}
+	items := core.NewSignalFunc(cx, []todo{}, nil)
+	draft := core.NewSignal(cx, "")
+	nextID := core.NewSignal(cx, 1)
+	colors := ui.ColorsOf(cx)
+
+	add := func() {
+		text := strings.TrimSpace(draft.Get())
+		if text == "" {
+			return
+		}
+		id := nextID.Get()
+		nextID.Set(id + 1)
+		items.Update(func(list []todo) []todo {
+			return append(list, todo{id: id, text: text})
+		})
+		draft.Set("")
+	}
+	setDone := func(id int, done bool) {
+		items.Update(func(list []todo) []todo {
+			next := append([]todo(nil), list...)
+			for i := range next {
+				if next[i].id == id {
+					next[i].done = done
+				}
+			}
+			return next
+		})
+	}
+	remove := func(id int) {
+		items.Update(func(list []todo) []todo {
+			out := list[:0:0]
+			for _, it := range list {
+				if it.id != id {
+					out = append(out, it)
+				}
+			}
+			return out
+		})
+	}
+	left := func() int {
+		n := 0
+		for _, it := range items.Get() {
+			if !it.done {
+				n++
+			}
+		}
+		return n
+	}
+
+	return ui.NavPage(cx, base.NavPage{
+		Title: "Todo Example",
+		Children: []core.Node{
+			core.View{
+				Style: core.Style{FlexGrow: 1, FlexShrink: 1, Padding: core.All(24), PaddingEnv: core.EnvAll(core.EnvSafeArea), Gap: 16},
+				StyleFunc: func() core.Style {
+					return core.Style{Background: colors.Background()}
+				},
+				Children: []core.Node{
+					ui.Text("Todos", 28, ui.Bold, colors.Text),
+					core.View{Style: core.Style{Direction: core.Row, Gap: 8}, Children: []core.Node{
+						ui.Input{Value: draft.Get, OnChange: draft.Set, Placeholder: "What needs doing?",
+							OnSubmit: func(string) { add() }, TestID: "draft", Style: core.Style{FlexGrow: 1}},
+						ui.Button{Text: "Add", Icon: lucide.Plus, OnPress: add, TestID: "add"},
+					}},
+					ui.Textf(func() string { return fmt.Sprintf("%d left", left()) }, 13, ui.Regular, colors.Muted),
+					core.List{
+						Count:         func() int { return len(items.Get()) },
+						Key:           func(i int) any { return items.Get()[i].id },
+						EstimatedSize: 44,
+						Style:         core.Style{FlexGrow: 1},
+						Empty:         ui.Text("Nothing yet. Add one above.", 13, ui.Regular, colors.Muted),
+						Row: func(cx *core.Scope, row core.ListRow) core.Node {
+							index := row.Index()
+							it := items.Get()[index]
+							return core.View{Style: core.Style{Direction: core.Row, AlignItems: core.AlignCenter, Gap: 8, Padding: core.Symmetric(8, 0)},
+								Children: []core.Node{
+									ui.Checkbox{
+										Checked: func() bool {
+											for _, x := range items.Get() {
+												if x.id == it.id {
+													return x.done
+												}
+											}
+											return false
+										},
+										OnChange: func(done bool) { setDone(it.id, done) },
+										Text:     it.text,
+										TestID:   fmt.Sprintf("todo-%d", it.id),
+										Style:    core.Style{FlexGrow: 1, FlexShrink: 1},
+									},
+									ui.IconButton{Icon: lucide.Trash, Label: "Delete", Variant: ui.IconButtonGhost,
+										TestID: fmt.Sprintf("delete-%d", it.id), OnPress: func() { remove(it.id) }},
+								}}
+						},
+					},
+				},
+			}},
+	}, ui.NavHeader{
+		OnBack:   func() { nav.Pop(1) },
+		Trailing: []core.Node{switchThemeButton(cx)},
+	})
 }
 
 func settingInfo(cx *core.Scope, nav *base.Nav[string], url *core.Signal[string]) base.NavPage {
@@ -571,6 +693,8 @@ func Root(cx *core.Scope) core.Node {
 			})
 		case "Setting":
 			return settingInfo(cx, nav, urlsetting)
+		case "TodoList2":
+			return todoList2(cx, nav)
 		}
 		colors := ui.ColorsOf(cx)
 		infos := []core.Node{}
