@@ -196,6 +196,24 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 	}
 	settinginfo := ui.Textf(urlsetting.Get, 14, ui.Regular, colors.Text)
 	demoToast := selectToastType(cx)
+	isShowAlert := core.NewSignal(cx, false)
+	demoAlertDialog := ui.AlertDialog{
+		Open:        isShowAlert.Get,
+		Title:       "Really?",
+		Description: "Please really confirm whether it's really",
+		Actions: []ui.AlertAction{
+			{
+				Text:    "Yes, it's really.",
+				Variant: ui.ButtonTinted,
+				Role:    core.AlertDefault,
+				Default: true,
+				OnPress: func() {
+					isShowAlert.Set(false)
+				},
+			},
+		},
+		Style: core.Style{},
+	}
 	// link2visit := core.NewSignal(cx, "")
 	return core.View{
 		Style: core.Style{
@@ -289,6 +307,15 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 					nav.Push("TodoList2")
 				},
 			},
+			core.View{
+				Children: []core.Node{
+					ui.Button{Text: "Show Alert Dialog", Icon: lucide.BadgeAlert,
+						Style:   core.Style{MinWidth: core.Pct(20), MaxWidth: core.Pct(50)},
+						OnPress: func() { isShowAlert.Set(true) },
+					},
+					demoAlertDialog,
+				},
+			},
 			// ui.Spacer{},
 		},
 	}
@@ -356,7 +383,7 @@ func todoList(cx *core.Scope) core.Node {
 	// 	items = append(items, itemRow{i, fmt.Sprintf("task-%02d", i), false})
 	// }
 	// nextid := core.NewSignal(cx, len(items))
-	nextid := core.NewSignal(cx, 1)
+	nextid := core.NewSignal(cx, 0)
 	listItem := core.NewSignalFunc(cx, items, nil)
 	colors := ui.ColorsOf(cx)
 	addTaskText := core.NewSignal(cx, "")
@@ -671,6 +698,7 @@ func Root(cx *core.Scope) core.Node {
 		switch route {
 		case "Main":
 			return ui.NavPage(cx, base.NavPage{
+				Style: core.Style{Overflow: core.OverflowScroll},
 				Title: "Main Page",
 				Children: []core.Node{
 					mainPage(cx, nav, urlsetting),
