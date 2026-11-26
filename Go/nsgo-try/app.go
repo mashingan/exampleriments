@@ -316,6 +316,25 @@ func mainPage(cx *core.Scope, nav *base.Nav[string], urlsetting *core.Signal[str
 					demoAlertDialog,
 				},
 			},
+			func() core.View {
+				isShowSheet := core.NewSignal(cx, false)
+				return core.View{
+					Style: core.Style{AlignItems: core.AlignCenter},
+					Children: []core.Node{
+						ui.Button{Text: "Show sheet", Icon: lucide.Sheet,
+							Style:   core.Style{MinWidth: core.Pct(20)},
+							OnPress: func() { isShowSheet.Set(true) }},
+						ui.Sheet{
+							Open:    isShowSheet.Get,
+							OnClose: func() { isShowSheet.Set(false) },
+							Children: []core.Node{
+								ui.Text("This is informational sheet, tap anywhere to close",
+									32, core.FontWeightNormal, colors.Text),
+							},
+						},
+					},
+				}
+			}(),
 			// ui.Spacer{},
 		},
 	}
@@ -379,11 +398,11 @@ func todoList(cx *core.Scope) core.Node {
 		isDone bool
 	}
 	items := make([]itemRow, 0, 12)
-	// for i := range 12 {
-	// 	items = append(items, itemRow{i, fmt.Sprintf("task-%02d", i), false})
-	// }
-	// nextid := core.NewSignal(cx, len(items))
-	nextid := core.NewSignal(cx, 0)
+	for i := range 12 {
+		items = append(items, itemRow{i, fmt.Sprintf("task-%02d", i), false})
+	}
+	nextid := core.NewSignal(cx, len(items))
+	// nextid := core.NewSignal(cx, 0)
 	listItem := core.NewSignalFunc(cx, items, nil)
 	colors := ui.ColorsOf(cx)
 	addTaskText := core.NewSignal(cx, "")
@@ -470,7 +489,6 @@ func todoList(cx *core.Scope) core.Node {
 		Row: func(cx *core.Scope, row core.ListRow) core.Node {
 			index := row.Index()
 			item := listItem.Get()[index]
-			slog.Info("todoList:row", "row", row, "index", index, "item", item)
 			return core.View{
 				Style: core.Style{Direction: core.Row, Margin: core.Symmetric(0, 5)},
 				Children: []core.Node{
@@ -484,7 +502,6 @@ func todoList(cx *core.Scope) core.Node {
 							return false
 						},
 						OnChange: func(checked bool) {
-							slog.Info("todoList:row:onchange", "items", listItem.Get(), "checked", checked)
 							setDone(item.id, checked)
 						},
 						Text:  item.action,
